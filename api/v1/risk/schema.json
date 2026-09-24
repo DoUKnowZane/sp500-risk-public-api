@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sp500-risk-schema-v1.json",
+  "title": "S&P 500 Risk Monitor Public Snapshot v1",
+  "description": "Machine-readable public contract for the Frozen V2 S&P 500 Risk Monitor. Higher scores mean higher risk.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "api_version",
+    "snapshot_type",
+    "market",
+    "model",
+    "timestamps",
+    "operational_state",
+    "overall",
+    "pillars",
+    "indicators",
+    "data_health",
+    "contract"
+  ],
+  "properties": {
+    "schema_version": {"const": "sp500_risk_snapshot_v1"},
+    "api_version": {"const": "1.0.0"},
+    "snapshot_type": {"const": "latest"},
+    "market": {
+      "type": "object",
+      "required": ["name", "symbol"],
+      "properties": {
+        "name": {"type": "string"},
+        "symbol": {"const": "SPX"}
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["model_id", "model_version", "parameter_status", "higher_score_means"],
+      "properties": {
+        "model_id": {"const": "sp500_risk_monitor_v2_final"},
+        "model_version": {"const": "v2_final"},
+        "parameter_status": {"const": "frozen"},
+        "freeze_date": {"type": ["string", "null"]},
+        "higher_score_means": {"const": "higher_risk"},
+        "internal_score_range": {"type": "object"},
+        "display_score_range": {"type": "object"},
+        "missing_data_policy": {"type": "string"}
+      }
+    },
+    "timestamps": {
+      "type": "object",
+      "required": ["as_of_date", "generated_at", "refresh_completed_at"],
+      "properties": {
+        "as_of_date": {"type": ["string", "null"]},
+        "generated_at": {"type": ["string", "null"]},
+        "refresh_completed_at": {"type": ["string", "null"]}
+      }
+    },
+    "operational_state": {"enum": ["HEALTHY", "DEGRADED"]},
+    "overall": {
+      "type": "object",
+      "required": ["display_score", "model_coverage", "status", "score_type", "risk_level_code", "risk_description"],
+      "properties": {
+        "internal_score": {"type": ["number", "null"]},
+        "display_score": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "model_coverage": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "status": {"type": "string"},
+        "score_type": {"enum": ["official", "provisional", "unavailable"]},
+        "risk_level_code": {"type": ["string", "null"]},
+        "risk_description": {"type": ["string", "null"]}
+      }
+    },
+    "pillars": {
+      "type": "object",
+      "required": ["monetary", "credit", "sentiment", "trend"],
+      "properties": {
+        "monetary": {"$ref": "#/$defs/pillar"},
+        "credit": {"$ref": "#/$defs/pillar"},
+        "sentiment": {"$ref": "#/$defs/pillar"},
+        "trend": {"$ref": "#/$defs/pillar"}
+      },
+      "additionalProperties": false
+    },
+    "indicators": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "items": {"$ref": "#/$defs/indicator"}
+    },
+    "data_health": {
+      "type": "object",
+      "required": ["summary", "issues", "refresh_run"],
+      "properties": {
+        "summary": {"type": "object"},
+        "issues": {"type": "array", "items": {"type": "object"}},
+        "refresh_run": {"type": "object"}
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": ["score_direction", "official_score_requires_full_model_coverage", "public_schema", "frozen_model_math_changed_by_this_api"],
+      "properties": {
+        "score_direction": {"const": "higher_is_more_risk"},
+        "official_score_requires_full_model_coverage": {"const": true},
+        "public_schema": {"const": "sp500-risk-schema-v1.json"},
+        "frozen_model_math_changed_by_this_api": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "pillar": {
+      "type": "object",
+      "required": ["display_score", "score_type", "status", "coverage"],
+      "properties": {
+        "internal_score": {"type": ["number", "null"]},
+        "display_score": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "score_type": {"enum": ["official", "provisional", "unavailable"]},
+        "status": {"type": "string"},
+        "coverage": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "indicator": {
+      "type": "object",
+      "required": ["id", "category", "name", "weight", "effective_weight_share_in_pillar", "frequency", "scoring_method", "source_last_date", "raw_value", "metric_value", "risk_band", "score", "scoring_status", "health"],
+      "properties": {
+        "id": {"type": "string"},
+        "category": {"enum": ["monetary", "credit", "sentiment", "trend"]},
+        "name": {"type": "string"},
+        "configured_source": {"type": ["string", "null"]},
+        "ticker": {"type": ["string", "null"]},
+        "configured_provider": {"type": ["string", "null"]},
+        "weight": {"type": ["number", "null"]},
+        "effective_weight_share_in_pillar": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "frequency": {"type": ["string", "null"]},
+        "scoring_method": {"type": ["string", "null"]},
+        "lookback_months": {"type": ["integer", "null"]},
+        "source_last_date": {"type": ["string", "null"]},
+        "as_of_date": {"type": ["string", "null"]},
+        "raw_value": {"type": ["number", "null"]},
+        "metric_value": {"type": ["number", "null"]},
+        "risk_band": {"type": ["string", "null"]},
+        "score": {"type": ["number", "null"]},
+        "scoring_status": {"type": ["string", "null"]},
+        "health": {"type": "object"}
+      }
+    }
+  }
+}
